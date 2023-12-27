@@ -1,0 +1,257 @@
+﻿@using OnlineStore.Domain.Enums;
+@section Scripts
+{
+	<partial name="_ValidationScriptsPartial" />
+}
+@{
+	var inModel = new 
+	{
+		Id = "inModal",
+		Title = "Increase stock",
+		FormID = "inForm",
+		OnSubmit = "inStock()",
+		BtnContent ="Save"
+	};
+	var outModel = new
+	{
+		Id = "outModal",
+		Title = "Decrease stock",
+		FormID = "outForm",
+		OnSubmit = "outStock()",
+		BtnContent = "Save"
+	};
+}
+<div class="container">
+	<div class="toast-container position-fixed end-0 p-3">
+		<div id="toast" class="toast align-items-center text-white border-0" role="alert" aria-live="assertive" aria-atomic="true">
+			<div class="d-flex">
+				<div class="toast-body">
+				</div>
+				<button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+			</div>
+		</div>
+	</div>
+	<div class="column mb-4">
+		<div class="custom-search">
+			<form method="get" id="search-form">
+				<i class="fa fa-search"></i>
+				<input type="text" name="search" class="form-control" placeholder="Search by name or category">
+				<button class="btn btn-primary" type="submit">Search</button>
+			</form>
+		</div>
+	</div>
+	<table id="eventsTable"
+		   data-toggle="table"
+		   data-url="@Url.Action("GetAll", "Stocks")"
+		   data-side-pagination="server"
+		   data-page-size="5"
+		   data-unique-id="stockID"
+		   data-pagination="true">
+		<thead>
+			<tr>
+				<th data-field="state" data-checkbox="true"></th>
+				<th data-field="stockID" data-class='hidden'>ID</th>
+				<th data-field="name">Name</th>
+				<th data-field="quantity">Quantity</th>
+				<th data-field="categoryName">Category</th>
+				<th data-formatter="actionFormatter">Action</th>
+			</tr>
+		</thead>
+	</table>
+</div>
+<partial name="_StockEvent" model="@inModel"></partial>
+<partial name="_StockEvent" model="@outModel"></partial>
+<script>
+	function actionFormatter(value, row, index) {
+		var inBtn = '<button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#inModal" onclick="showInModal.call(this)">In</button>';
+		var outBtn = '<button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#outModal" onclick="showOutModal.call(this)">Out</button>';
+		var result = '<div class="d-flex gap-3">' + inBtn + outBtn + '</div>';
+		return result;
+	}
+	document.addEventListener("DOMContentLoaded", function (event) {
+		// get data to table
+		var eventsTable = $('#eventsTable');
+		$('#search-form').submit(function (e) {
+			e.preventDefault();
+			var pageSize = eventsTable.bootstrapTable('getOptions').pageSize;
+			var pageNumber = eventsTable.bootstrapTable('getOptions').pageNumber;
+			var data = $(this).serialize();
+			var url = "@Url.Action("GetAll", "Stocks")" + '?' + data + '&offset=' + (pageNumber-1) * pageSize + '&limit=' + pageSize;
+			$.ajax({
+				url: url,
+				data: data,
+				success: function (data) {
+					$('#eventsTable').bootstrapTable('load', data);
+				}
+			});
+		});
+		// validate form
+		$.validator.addMethod('filesize', function (value, element, param) {
+			return this.optional(element) || (element.files[0].size <= param)
+		}, 'File size must be less than {0}');
+		$("#createCategory").validate({
+			onfocusout: false,
+			onkeyup: false,
+			onclick: true,
+			rules: {
+				"Name": {
+					required: true
+				},
+				"Description": {
+					required: true,
+					minlength: 8
+				},
+			}
+		});
+	});
+</script>
+<script>
+	function showInModal() {
+		var stockID = $(this).closest('tr').find('.hidden').text();
+		$('#inModal').modal('show');
+		$.ajax({
+			url: "@Url.Action("Details", "Stocks")" + "/" + stockID,
+			type: "GET",
+			success: function (data) {
+				$("#inModal").find("#StockID").val(data.stockID);
+				$("#inModal").find("#Name").val(data.name);
+			},
+		});
+	};
+	function inStock() {
+		event.preventDefault();
+		var data = $("#inForm").serialize();
+		data += "&type=@StockEventTypes.IN";
+		$.ajax({
+			url: "@Url.Action("Update", "Stocks")",
+			type: "POST",
+			data: data,
+			success: function (data) {
+				console.log(data);
+				$('#eventsTable').bootstrapTable('updateByUniqueId', {
+					id: data.stock.stockID,
+					row: data.stock
+				});
+				$("#inModal").modal("hide");
+				quantity = 0;
+				//show message
+				$("#toast").toast("show");
+				$("#toast").find(".toast-body").text(data.message.content);
+				$("#toast").addClass("bg-success");
+				setTimeout(function () {
+					$("#toast").removeClass("bg-success");
+					$("#toast").toast("hide");
+				}, 3000);
+				$(".modal-backdrop").remove()
+			},
+		});
+	}
+</script>
+<script>
+	let quantity = 0;
+	function showOutModal() {
+		var stockID = $(this).closest('tr').find('.hidden').text();
+		console.log(stockID);
+		$('#outModal').modal('show');
+		$.ajax({
+			url: "@Url.Action("Details", "Stocks")" + "/" + stockID,
+			type: "GET",
+			success: function (data) {
+				$("#outModal").find("#StockID").val(data.stockID);
+				$("#outModal").find("#Name").val(data.name);
+				quantity = data.quantity;
+			},
+		});
+	};
+	function outStock() {
+		event.preventDefault();
+		var data = $("#outForm").serialize();
+		data += "&type=@StockEventTypes.OUT";
+		$.ajax({
+			url: "@Url.Action("Update", "Stocks")",
+			type: "POST",
+			data: data,
+			success: function (data) {
+				console.log(data);
+				$('#eventsTable').bootstrapTable('updateByUniqueId', {
+					id: data.stock.stockID,
+					row: data.stock
+				});
+				$("#outModal").modal("hide");
+				quantity = 0;
+				//show message
+				$("#toast").toast("show");
+				$("#toast").find(".toast-body").text(data.message.content);
+				$("#toast").addClass("bg-success");
+				setTimeout(function () {
+					$("#toast").removeClass("bg-success");
+					$("#toast").toast("hide");
+				}, 3000);
+				$(".modal-backdrop").remove()
+			},
+		});
+	}
+	function decreaseQuantity() {
+		if ($('#inModal').is(':visible')) {
+			var quantityInput = $("#inModal").find("#quantityInput");
+			var currentQuantity = parseInt(quantityInput.val(), 10);
+			if (currentQuantity > 1) {
+				quantityInput.val(currentQuantity - 1);
+			}
+		}
+		if ($('#outModal').is(':visible')) {
+			var quantityInput = $("#outModal").find("#quantityInput");
+			var currentQuantity = parseInt(quantityInput.val(), 10);
+			if (currentQuantity > 1) {
+				quantityInput.val(currentQuantity - 1);
+			}
+		}
+	}	
+
+	function increaseQuantity() {
+		if ($('#inModal').is(':visible')) {
+			var quantityInput = $("#inModal").find("#quantityInput");
+			var currentQuantity = parseInt(quantityInput.val(), 10);
+			quantityInput.val(currentQuantity + 1);
+		}
+		if ($('#outModal').is(':visible')) {
+			var quantityInput = $("#outModal").find("#quantityInput");
+			var currentQuantity = parseInt(quantityInput.val(), 10);
+			if (currentQuantity < quantity) {
+				quantityInput.val(currentQuantity + 1);
+			}
+		}
+	}
+</script>
+<script>
+	document.addEventListener("DOMContentLoaded", function (event) {
+		$("#inForm").validate({
+			onfocusout: false,
+			onkeyup: false,
+			onclick: true,
+			rules: {
+				"Reason": {
+					required: true
+				},
+			}
+		});
+		$("#outForm").validate({
+			onfocusout: false,
+			onkeyup: false,
+			onclick: true,
+			rules: {
+				"Reason": {
+					required: true
+				},
+			}
+		});
+		$('#inModal').on('hide.bs.modal', function (event) {
+			var modal = $(this);
+			modal.find('#quantityInput').val('0');
+		});
+		$('#outModal').on('hide.bs.modal', function (event) {
+			var modal = $(this);
+			modal.find('#quantityInput').val('0');
+		});
+	});
+</script>

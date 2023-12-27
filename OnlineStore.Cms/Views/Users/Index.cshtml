@@ -1,0 +1,446 @@
+﻿@using OnlineStore.Domain.Enums
+@section Scripts
+{
+	<partial name="_ValidationScriptsPartial" />
+}
+@{
+	var confirmDisable = new OnlineStore.Domain.Helpers.ConfirmDialogModel()
+			{
+				Id = "disableModal",
+				Title = "Confirm disable",
+				Body = "Do you want to disable this user?",
+				Action = "disableUser()",
+				ConfirmTitle = "Yes, disable"
+			};
+	var confirmEnable = new OnlineStore.Domain.Helpers.ConfirmDialogModel()
+			{
+				Id = "enableModal",
+				Title = "Confirm enable",
+				Body = "Do you want to enable this user?",
+				Action = "enableUser()",
+				ConfirmTitle = "Yes, enable"
+			};
+}
+<div class="container">
+	<div class="toast-container position-fixed end-0 p-3">
+		<div id="toast" class="toast align-items-center text-white border-0" role="alert" aria-live="assertive" aria-atomic="true">
+			<div class="d-flex">
+				<div class="toast-body">
+				</div>
+				<button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+			</div>
+		</div>
+	</div>
+	<div class="column mb-4">
+		<button type="button" class="btn btn-primary fixed-button btn-circle btn-xl" data-bs-toggle="modal"
+				data-bs-target="#createModal">
+			<iconify-icon icon="typcn:plus" width="50" height="50"></iconify-icon>
+		</button>
+		<div class="custom-search">
+			<form method="get" id="search-form">
+				<i class="fa fa-search"></i>
+				<input type="text" name="search" class="form-control" placeholder="Search by name">
+				<button class="btn btn-primary" type="submit">Search</button>
+			</form>
+		</div>
+	</div>
+	<table id="eventsTable"
+		   data-toggle="table"
+		   data-url="@Url.Action("GetAll", "Users")"
+		   data-side-pagination="server"
+		   data-page-size="20"
+		   data-unique-id="userID"
+		   data-pagination="true">
+		<thead>
+			<tr>
+				<th data-checkbox="true"></th>
+				<th data-field="userID" data-class='hidden'>ID</th>
+				<th data-field="firstName">First Name</th>
+				<th data-field="lastName">Last Name</th>
+				<th data-field="email">Email</th>
+				<th data-field="role">Role</th>
+				<th data-field="isDeleted" data-formatter="actionFormatter">Action</th>
+			</tr>
+		</thead>
+	</table>
+</div>
+<partial name="_ConfirmDialog" model="@confirmDisable" />
+<partial name="_ConfirmDialog" model="@confirmEnable" />
+<div class="modal fade" id="createModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title" id="exampleModalLabel">Add user</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div class="modal-body">
+				<form method="post" enctype="multipart/form-data"
+					  id="createUser" onsubmit={createUser()}>
+					<div class="row">
+						<div class="mb-3 col">
+							<label for="FirstName" class="form-label">First Name:</label>
+							<input type="text" name="FirstName" class="form-control" id="firstName" />
+						</div>
+						<div class="mb-3 col">
+							<label for="LastName" class="form-label">Last Name:</label>
+							<input type="text" name="LastName" class="form-control" id="lastName" />
+						</div>
+					</div>
+					<div class="mb-3">
+						<label for="Email" class="form-label">Email:</label>
+						<input type="email" name="Email" class="form-control" id="email" />
+					</div>
+					<div class="mb-3">
+						<label for="Password" class="form-label">Password:</label>
+						<input type="password" name="Password" class="form-control" id="password" />
+					</div>
+					<div class="row">
+						<div class="mb-3 col">
+							<label for="PhoneNumber" class="form-label">Phone number:</label>
+							<input type="phoneNumber" name="PhoneNumber" class="form-control" id="phoneNumber" />
+						</div>
+						<div class="mb-3">
+							<label for="datepicker" class="form-label">Select Date:</label>
+							<input type="date" name="DateOfBirth" class="form-control datepicker" data-provide="datepicker" data-date-format="dd/mm/yyyy">
+						</div>
+					</div>
+					<div class="mb-3">
+						<label for="Role" class="form-label">Role:</label>
+						<select asp-items="Html.GetEnumSelectList<Role>()" class="form-select" name="Role"></select>
+					</div>
+					
+					<button type="submit" class="btn btn-primary">Save</button>
+				</form>
+			</div>
+		</div>
+	</div>
+</div>
+<div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title" >Edit user</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div class="modal-body">
+				<form method="post" enctype="multipart/form-data"
+					  id="editUser" onsubmit={editUser()}>
+					<input type="hidden" name="userID" class="form-control" id="userID" />
+					<div class="row">
+						<div class="mb-3 col">
+							<label for="FirstName" class="form-label">First Name:</label>
+							<input type="text" name="FirstName" class="form-control" id="firstName" />
+						</div>
+						<div class="mb-3 col">
+							<label for="LastName" class="form-label">Last Name:</label>
+							<input type="text" name="LastName" class="form-control" id="lastName" />
+						</div>
+					</div>
+					<div class="mb-3">
+						<label for="Email" class="form-label">Email:</label>
+						<input type="email" name="Email" class="form-control" id="email" />
+					</div>
+					<div class="mb-3">
+						<label for="Password" class="form-label">New Password:</label>
+						<input type="password" name="NewPassword" class="form-control" id="password" />
+					</div>
+					<div class="row">
+						<div class="mb-3 col">
+							<label for="PhoneNumber" class="form-label">Phone number:</label>
+							<input type="phoneNumber" name="PhoneNumber" class="form-control" id="phoneNumber" />
+						</div>
+						<div class="mb-3">
+							<label for="datepicker" class="form-label">Select Date:</label>
+							<input type="date" name="DateOfBirth" class="form-control datepicker" data-provide="datepicker" data-date-format="dd/MM/yyyy">
+						</div>
+					</div>
+					<div class="mb-3">
+						<label for="Role" class="form-label">Role:</label>
+						<select asp-items="Html.GetEnumSelectList<Role>()" class="form-select" name="Role" id="role"></select>
+					</div>
+
+					<button type="submit" class="btn btn-primary">Save</button>
+				</form>
+			</div>
+		</div>
+	</div>
+</div>
+<script>
+	document.addEventListener("DOMContentLoaded", function (event) {
+		// get data to table
+		var eventsTable = $('#eventsTable');
+		$('#search-form').submit(function (e) {
+			e.preventDefault();
+			var pageSize = eventsTable.bootstrapTable('getOptions').pageSize;
+			var pageNumber = eventsTable.bootstrapTable('getOptions').pageNumber;
+			var data = $(this).serialize();
+			var url = "@Url.Action("GetAll", "Users")" + '?' + data + '&offset=' + (pageNumber - 1) * pageSize + '&limit=' + pageSize;
+			$.ajax({
+				url: url,
+				data: data,
+				success: function (data) {
+					$('#eventsTable').bootstrapTable('load', data);
+				}
+			});
+		});
+	});
+</script>
+<script>
+	function actionFormatter(value, row, index) {
+		let del = null;
+		if (value) {
+			del = '<button class="btn btn-warning" onclick="showEnableModal.call(this)">Enable</button>';
+		} else {
+			del = '<button class="btn btn-danger" onclick="showDisableModal.call(this)">Disable</button>';
+		}
+		var more = '<button class="btn btn-primary" onClick="showEditModal.call(this)">Edit</button>';
+		var result = '<div class="d-flex gap-3">' + more + del + '</div>';
+		return result;
+	}
+</script>
+<script>
+	function createUser(event) {
+		event.preventDefault(); // Prevent form submission
+		if ($("#createUser").valid()) {
+			var formData = $("#createUser").serialize();
+			$.ajax({
+				method: "POST",
+				url: '@Url.Action("Create", "Users")',
+				data: formData,
+				success: function (data) {
+					// Handle success
+					$('#eventsTable').bootstrapTable('append', data.user);
+					$("#createModal").modal("hide");
+					$("#toast").toast("show");
+					$("#toast").find(".toast-body").text(data.message.content);
+					$("#toast").addClass("bg-success");
+					setTimeout(function () {
+						$("#toast").removeClass("bg-success");
+						$("#toast").toast("hide");
+					}, 3000);
+
+					// Reset the form
+					$("#createUser").trigger("reset");
+				},
+				error: function (error) {
+					// Handle error
+					console.error('Ajax request failed:', error);
+				}
+			});
+			return false;
+		} else {
+			return false;
+		}
+	}
+</script>
+<script>
+	function showEditModal() {
+		var userID = $(this).closest('tr').find('.hidden').text();
+		$('#editModal').modal('show');
+		$.ajax({
+			url: "@Url.Action("Details", "Users")" + "/" + userID,
+			type: "GET",
+			success: function (data) {
+				console.log(data);
+				$("#editModal").find("#userID").val(data.userID);
+				$("#editModal").find("#firstName").val(data.firstName);
+				$("#editModal").find("#lastName").val(data.lastName);
+				$("#editModal").find("#email").val(data.email);
+				$("#editModal").find("#phoneNumber").val(data.phoneNumber);
+				$("#editModal").find(".datepicker").val(data.dateOfBirth);
+				$("#editModal").find("#role").val(data.role);
+			},
+		});
+	};
+	function editUser() {
+		event.preventDefault();
+		if ($("#editUser").valid()) {
+			var formData = new FormData(document.getElementById('editUser'))
+			$.ajax({
+				method: "POST",
+				url: '@Url.Action("Update", "Users")',
+				data: formData,
+				processData: false,
+				contentType: false,
+				success: function (data) {
+					$('#eventsTable').bootstrapTable('updateByUniqueId', {
+						id: data.user.userID,
+						row: data.user
+					});
+					$("#editModal").modal("hide");
+					$("#toast").toast("show");
+					$("#toast").find(".toast-body").text(data.message.content);
+					$("#toast").addClass("bg-success");
+					setTimeout(function () {
+						$("#toast").removeClass("bg-success");
+						$("#toast").toast("hide");
+					}, 3000);
+					formData.forEach((value, key) => {
+						formData.delete(key);
+					});
+				},
+				error: function (error) {
+					console.error('Ajax request failed:', error);
+				}
+			});
+			$('#editUser').modal('hide');
+			return false
+		} else {
+			return false;
+		}
+	};
+</script>
+<script>
+	document.addEventListener("DOMContentLoaded", function (event) {
+		$("#createUser").validate({
+			onfocusout: false,
+			onkeyup: false,
+			onclick: true,
+			rules: {
+				"FirstName": {
+					required: true
+					minlength: 2
+				},
+				"LastName": {
+					required: true,
+					minlength: 2
+				},
+				"Email": {
+					required: true,
+					email: true
+				},
+				"Password": {
+					required: true,
+					minlength: 8
+				},
+				"PhoneNumber": {
+					required: true,
+					minlength: 9
+				},
+				"Role": {
+					required: true,
+				},
+				"DateOfBirth": {
+					required: true,
+				},
+			}
+		});
+		$("#editUser").validate({
+			onfocusout: false,
+			onkeyup: false,
+			onclick: true,
+			rules: {
+				"FirstName": {
+					required: true
+						minlength: 2
+				},
+				"LastName": {
+					required: true,
+					minlength: 2
+				},
+				"Email": {
+					required: true,
+					email: true
+				},
+				"NewPassword": {
+					required: true,
+					minlength: 8
+				},
+				"PhoneNumber": {
+					required: true,
+					minlength: 9
+				},
+				"Role": {
+					required: true,
+				},
+				"DateOfBirth": {
+					required: true,
+				},
+			}
+		});
+	});
+</script>
+<script>
+	// disable user
+	let userID = null;
+	function showDisableModal() {
+		userID = $(this).closest('tr').find('.hidden').text();
+		$("#disableModal").modal("show");
+	}
+	function disableUser() {
+		event.preventDefault();
+		if (userID) {
+			$.ajax({
+				method: "GET",
+				url: '@Url.Action("Disable", "Users")' + "/" + userID,
+				success: function (data) {
+					// remove row from table
+					if (data.isDelete) {
+						$("#eventsTable").bootstrapTable('remove', {
+							field: 'userID',
+							values: [data.user.userID]
+						})
+					}
+					// update row
+					else {
+						$('#eventsTable').bootstrapTable('updateByUniqueId', {
+							id: data.user.userID,
+							row: data.user
+						});
+					}
+					$("#deleteModal").modal("hide");
+					//show message
+					$("#toast").toast("show");
+					$("#toast").find(".toast-body").text(data.message.content);
+					$("#toast").addClass("bg-success");
+					setTimeout(function () {
+						$("#toast").removeClass("bg-success");
+						$("#toast").toast("hide");
+					}, 3000);
+					userID = null;
+				},
+				error: function (error) {
+					console.error('Ajax request failed:', error);
+				}
+			});
+			$('#disableModal').modal('hide');
+		}
+	};
+</script>
+<script>
+	// enable user
+	let userIdEnable = null;
+	function showEnableModal() {
+		userIdEnable = $(this).closest('tr').find('.hidden').text();
+		console.log(userIdEnable);
+		$("#enableModal").modal("show");
+	}
+	function enableUser() {
+		event.preventDefault();
+		if (userIdEnable) {
+			$.ajax({
+				method: "GET",
+				url: '@Url.Action("Enable", "Users")' + "/" + userIdEnable,
+				success: function (data) {
+					$('#eventsTable').bootstrapTable('updateByUniqueId', {
+						id: data.user.userID,
+						row: data.user
+					});
+					$("#enableModal").modal("hide");
+					$("#toast").toast("show");
+					$("#toast").find(".toast-body").text(data.message.content);
+					$("#toast").addClass("bg-success");
+					setTimeout(function () {
+						$("#toast").removeClass("bg-success");
+						$("#toast").toast("hide");
+					}, 3000);
+					userIdEnable = null;
+				},
+				error: function (error) {
+					console.error('Ajax request failed:', error);
+				}
+			});
+			$('#enableModal').modal('hide');
+		}
+	};
+</script>

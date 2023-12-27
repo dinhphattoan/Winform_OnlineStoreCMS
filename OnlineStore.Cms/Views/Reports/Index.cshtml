@@ -1,0 +1,77 @@
+﻿<div class="container">
+	<div class="toast-container position-fixed end-0 p-3">
+		<div id="toast" class="toast align-items-center text-white border-0" role="alert" aria-live="assertive" aria-atomic="true">
+			<div class="d-flex">
+				<div class="toast-body">
+				</div>
+				<button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+			</div>
+		</div>
+	</div>
+	<div class="column mb-4">
+		<h3 class="text-center">Low stock product</h3>
+		<table id="lowStocks"
+			   data-toggle="table"
+			   data-url="@Url.Action("LowStocks", "Reports")"
+			   data-side-pagination="server"
+			   data-page-size="5"
+			   data-unique-id="stockEventID"
+			   data-pagination="true">
+			<thead>
+				<tr>
+					<th data-checkbox="true"></th>
+					<th data-field="stockEventID" data-class='hidden'>ID</th>
+					<th data-field="name">Name</th>
+					<th data-field="type">Type</th>
+					<th data-field="quantity">Quantity</th>
+					<th data-field="reason">Reason</th>
+					<th data-field="createdAt">Time</th>
+				</tr>
+			</thead>
+		</table>
+	</div>
+	<div class="column mb-4">
+		<h3 class="text-center">Order Today</h3>
+		<table id="todayOrders"
+		   data-toggle="table"
+		   data-url="@Url.Action("TodayOrders", "Reports")"
+		   data-side-pagination="server"
+		   data-page-size="5"
+		   data-unique-id="stockEventID"
+		   data-pagination="true">
+		<thead>
+			<tr>
+				<th data-checkbox="true"></th>
+				<th data-field="stockEventID" data-class='hidden'>ID</th>
+				<th data-field="name">Name</th>
+				<th data-field="type">Type</th>
+				<th data-field="quantity">Quantity</th>
+				<th data-field="reason">Reason</th>
+				<th data-field="createdAt">Time</th>
+			</tr>
+		</thead>
+	</table>
+	</div>
+	<div class="column mb-4">
+		<h3 class="text-center">Highest Order</h3>
+		<table id="highestTotal"
+			   data-toggle="table"
+			   data-url="@Url.Action("HighestTotal", "Reports")"
+			   data-side-pagination="server"
+			   data-page-size="5"
+			   data-unique-id="stockEventID"
+			   data-pagination="true">
+			<thead>
+				<tr>
+					<th data-checkbox="true"></th>
+					<th data-field="stockEventID" data-class='hidden'>ID</th>
+					<th data-field="name">Name</th>
+					<th data-field="type">Type</th>
+					<th data-field="quantity">Quantity</th>
+					<th data-field="reason">Reason</th>
+					<th data-field="createdAt">Time</th>
+				</tr>
+			</thead>
+		</table>
+	</div>
+</div>

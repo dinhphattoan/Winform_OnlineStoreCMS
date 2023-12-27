@@ -1,0 +1,152 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>@ViewData["Title"] - OnlineStore.Cms</title>
+	<link rel="stylesheet" href="/lib/bootstrap/dist/css/bootstrap.min.css" />
+	<link rel="stylesheet" href="/css/site.css" asp-append-version="true" />
+	<link rel="stylesheet" href="https://unpkg.com/@@adminkit/core@latest/dist/css/app.css">
+	<link rel="stylesheet" href="https://unpkg.com/bootstrap-table/dist/bootstrap-table.min.css">
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" />
+</head>
+<body>
+	<div class="wrapper">
+		<nav id="sidebar" class="sidebar js-sidebar">
+			<div class="sidebar-content js-simplebar fixed">
+				<a class="sidebar-brand" href="index.html">
+					<span class="align-middle">Online Store</span>
+				</a>
+
+				<ul class="sidebar-nav">
+					@if (User.IsInRole("ADMIN"))
+					{
+					<li class="sidebar-item">
+						<a class="sidebar-link" href="@Url.Action("Index","Users")">
+							<i class="align-middle" data-feather="users"></i>
+							<span class="align-middle">Users</span>
+						</a>
+					</li>
+					}
+					<li class="sidebar-item">
+						<a class="sidebar-link" href="@Url.Action("Index","Products")">
+							<i class="align-middle" data-feather="package"></i>
+							<span class="align-middle">Products</span>
+						</a>
+					</li>
+
+					<li class="sidebar-item">
+						<a class="sidebar-link" href="@Url.Action("Index","Categories")">
+							<i class="align-middle" data-feather="list"></i>
+							<span class="align-middle">Categories</span>
+						</a>
+					</li>
+
+					<li class="sidebar-item">
+						<a class="sidebar-link" href="@Url.Action("Index","Stocks")">
+							<i class="align-middle" data-feather="box"></i>
+							<span class="align-middle">Stocks</span>
+						</a>
+					</li>
+
+					<li class="sidebar-item">
+						<a class="sidebar-link" href="@Url.Action("Index","StockEvents")">
+							<i class="align-middle" data-feather="truck"></i>
+							<span class="align-middle">Stock Events</span>
+						</a>
+					</li>
+
+					<li class="sidebar-item">
+						<a class="sidebar-link" href="@Url.Action("Index","Orders")">
+							<i class="align-middle" data-feather="database"></i>
+							<span class="align-middle">Orders</span>
+						</a>
+					</li>
+					<li class="sidebar-item">
+						<a class="sidebar-link" href="@Url.Action("Index","Reports")">
+							<i class="align-middle" data-feather="book"></i>
+							<span class="align-middle">Reports</span>
+						</a>
+					</li>
+				</ul>
+			</div>
+		</nav>
+		<div class="main">
+			<nav class="navbar navbar-expand navbar-light navbar-bg">
+				<a class="sidebar-toggle js-sidebar-toggle">
+					<i class="hamburger align-self-center"></i>
+				</a>
+
+				<div class="navbar-collapse collapse">
+					<ul class="navbar-nav navbar-align">
+						<li class="nav-item dropdown">
+							<a class="nav-icon dropdown-toggle d-inline-block d-sm-none"
+							   href="#"
+							   data-bs-toggle="dropdown">
+								<i class="align-middle" data-feather="settings"></i>
+							</a>
+							<a class="nav-link dropdown-toggle d-none d-sm-inline-block"
+							   href="#"
+							   data-bs-toggle="dropdown">
+								<img src="/img/avatars/avatar.jpg"
+									 class="avatar img-fluid rounded me-1"
+									 alt="Charles Hall" />
+								<span class="text-dark">@User.Identity.Name</span>
+							</a>
+							<div class="dropdown-menu dropdown-menu-end">
+								<a class="dropdown-item" href="pages-profile.html">
+									<i class="align-middle me-1" data-feather="user"></i>
+									Profile
+								</a>
+								<a class="dropdown-item" href="#">
+									<i class="align-middle me-1" data-feather="pie-chart"></i>
+									Analytics
+								</a>
+								<div class="dropdown-divider"></div>
+								<a class="dropdown-item" href="index.html">
+									<i class="align-middle me-1" data-feather="settings"></i>
+									Settings & Privacy
+								</a>
+								<a class="dropdown-item" href="#">
+									<i class="align-middle me-1"
+									   data-feather="help-circle"></i>
+									Help Center
+								</a>
+								<div class="dropdown-divider"></div>
+								<a class="dropdown-item" href="/logout">Log out</a>
+							</div>
+						</li>
+					</ul>
+				</div>
+			</nav>
+			<main class="content">
+				<div class="container-fluid p-0">
+					@RenderBody()
+				</div>
+			</main>
+		</div>
+	</div>
+	<script src="/lib/jquery/dist/jquery.min.js"></script>
+	<script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+	<script src="https://unpkg.com/bootstrap-table@1.22.1/dist/bootstrap-table.min.js"></script>
+	<script src="https://unpkg.com/@@adminkit/core@latest/dist/js/app.js"></script>
+
+	<script src="/js/site.js" asp-append-version="true"></script>
+	<script>
+		var currentUrl = window.location.href;
+
+		document.querySelectorAll('.sidebar-item').forEach(function (item) {
+			item.classList.remove('active');
+		});
+
+		document.querySelectorAll('.sidebar-link').forEach(function (link) {
+			var linkHref = link.getAttribute('href');
+
+			if (currentUrl.endsWith(linkHref)) {
+				link.closest('.sidebar-item').classList.add('active');
+			}
+		});
+	</script>
+	@await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

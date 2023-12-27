@@ -1,0 +1,371 @@
+﻿@model OnlineStore.Cms.ViewModels.Categories.CategoriesReqViewModel
+@section Scripts
+{
+	<partial name="_ValidationScriptsPartial" />
+}
+@{
+	var confirmDelete = new OnlineStore.Domain.Helpers.ConfirmDialogModel()
+			{
+				Id = "deleteModal",
+				Title = "Confirm delete",
+				Body = "Do you want to delete this category?",
+				Action = "deleteCategory()",
+				ConfirmTitle = "Yes, delete"
+			};
+	var confirmEnable = new OnlineStore.Domain.Helpers.ConfirmDialogModel()
+			{
+				Id = "enableModal",
+				Title = "Confirm enable",
+				Body = "Do you want to enable this category?",
+				Action = "enableCategory()",
+				ConfirmTitle = "Yes, enable"
+			};
+}
+<div class="container">
+	<div class="toast-container position-fixed end-0 p-3">
+		<div id="toast" class="toast align-items-center text-white border-0" role="alert" aria-live="assertive" aria-atomic="true">
+			<div class="d-flex">
+				<div class="toast-body">
+				</div>
+				<button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+			</div>
+		</div>
+	</div>
+	<div class="column mb-4">
+		<button type="button" class="btn btn-primary fixed-button btn-circle btn-xl" data-bs-toggle="modal"
+				data-bs-target="#createModal">
+			<iconify-icon icon="typcn:plus" width="50" height="50"></iconify-icon>
+		</button>
+		<div class="custom-search">
+			<form method="get" id="search-form">
+				<i class="fa fa-search"></i>
+				<input type="text" name="search" class="form-control" placeholder="Search categories by name">
+				<button class="btn btn-primary" type="submit">Search</button>
+			</form>
+		</div>
+	</div>
+	<table id="eventsTable"
+		   data-toggle="table"
+		   data-url="@Url.Action("GetAll", "Categories")"
+		   data-side-pagination="server"
+		   data-page-size="20"modal fade
+		   data-unique-id="categoryID"
+		   data-pagination="true">
+		<thead>
+			<tr>
+				<th data-field="state" data-checkbox="true"></th>
+				<th data-field="categoryID" data-class='hidden'>ID</th>
+				<th data-field="name">Name</th>
+				<th data-field="shortDescription">Description</th>
+				<th data-field="isDeleted" data-formatter="actionFormatter">Action</th>
+			</tr>
+		</thead>
+	</table>
+</div>
+<div class="modal" id="createModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title" id="exampleModalLabel">Add category</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div class="modal-body">
+				<!-- Form for adding a new product -->
+				<!-- <form onsubmit={createProduct()}> -->
+				<form method="post"	 enctype="multipart/form-data"
+					  id="createCategory" onsubmit={createCategory()}>
+					<div class="mb-3">
+						<label for="Name" class="form-label">Name:</label>
+						<input asp-for="Name" type="text" name="Name" class="form-control" id="categoryName" />
+						<span id="categoryName-error" class="error-message text-danger"
+							  style="display: none;"></span>
+					</div>
+					<div class="mb-3">
+						<label for="Description" class="form-label">Description:</label>
+						<textarea asp-for="Description" name="Description" class="form-control"
+								  id="categoryDescription" rows="3"></textarea>
+						<span id="categoryDescription-error" class="error-message text-danger"
+							  style="display: none;"></span>
+					</div>
+					<div class="mb-3">
+						<label for="Image" class="form-label">Image:</label>
+						<input name="Image" type="file" class="form-control" accept="image/*" />
+						<small class="form-text text-muted">Upload images.</small>
+						<span id="categoryImage-error" class="error-message text-danger"
+							  style="display: none;"></span>
+					</div>
+					<button type="submit" class="btn btn-primary">Add Category</button>
+				</form>
+			</div>
+		</div>
+	</div>
+</div>
+<div class="modal" id="editModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title" id="exampleModalLabel">Edit category</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div class="modal-body">
+				<form method="post" enctype="multipart/form-data"
+					  id="editCategory" onsubmit={editCategory()}>
+					<input asp-for="CategoryID" type="hidden" name="CategoryID" class="form-control" id="CategoryID" />
+					<div class="mb-3">
+						<label for="Name" class="form-label">Name:</label>
+						<input asp-for="Name" type="text" name="Name" class="form-control" id="categoryName" />
+						<span id="categoryName-error" class="error-message text-danger"
+							  style="display: none;"></span>
+					</div>
+					<div class="mb-3">
+						<label for="Description" class="form-label">Description:</label>
+						<textarea asp-for="Description" name="Description" class="form-control"
+								  id="categoryDescription" rows="3"></textarea>
+						<span id="categoryDescription-error" class="error-message text-danger"
+							  style="display: none;"></span>
+					</div>
+					<div id="imageGallery" class="d-flex align-items-center"></div>
+					<div class="mb-3">
+						<label for="Image" class="form-label">New image:</label>
+						<input name="Image" type="file" class="form-control" accept="image/*" />
+						<small class="form-text text-muted">Upload new images.</small>
+						<span id="categoryImage-error" class="error-message text-danger"
+							  style="display: none;"></span>
+					</div>
+					<button type="submit" class="btn btn-primary">Save</button>
+				</form>
+			</div>
+		</div>
+	</div>
+</div>
+<partial name="_ConfirmDialog" model="@confirmDelete" />
+<partial name="_ConfirmDialog" model="@confirmEnable" />
+<script>
+	function actionFormatter(value, row, index) {
+		let del = null;
+		if (value) {
+			del = '<button class="btn btn-warning" onclick="showEnableModal.call(this)">Enable</button>';
+		} else {
+			del = '<button class="btn btn-danger" onclick="showDeleteModal.call(this)">Delete</button>';
+		}
+		var more = '<button class="btn btn-primary" onClick="showEditModal.call(this)">Edit</button>';
+		var result = '<div class="d-flex gap-3">' + more + del + '</div>';
+		return result;
+	}
+	document.addEventListener("DOMContentLoaded", function (event) {
+		// get data to table
+		var eventsTable = $('#eventsTable');
+		$('#search-form').submit(function (e) {
+			e.preventDefault();
+			var pageSize = eventsTable.bootstrapTable('getOptions').pageSize;
+			var pageNumber = eventsTable.bootstrapTable('getOptions').pageNumber;
+			var data = $(this).serialize();
+			var url = "@Url.Action("GetAll", "Categories")" + '?' + data + '&offset=' + (pageNumber-1) * pageSize + '&limit=' + pageSize;
+			$.ajax({
+				url: url,
+				data: data,
+				success: function (data) {
+					$('#eventsTable').bootstrapTable('load', data);
+				}
+			});
+		});
+		// validate form
+		$.validator.addMethod('filesize', function (value, element, param) {
+			return this.optional(element) || (element.files[0].size <= param)
+		}, 'File size must be less than {0}');
+		$("#createCategory").validate({
+			onfocusout: false,
+			onkeyup: false,
+			onclick: true,
+			rules: {
+				"Name": {
+					required: true
+				},
+				"Description": {
+					required: true,
+					minlength: 8
+				},
+			}
+		});
+	});
+</script>
+<script>
+	function createCategory() {
+		if ($("#createCategory").valid()) {
+			event.preventDefault();
+			var formData = $("#createCategory").serialize();
+			$.ajax({
+				method: "POST",
+				url: '@Url.Action("Create","Categories")',
+				data: formData,
+				success: function (data) {
+					$('#eventsTable').bootstrapTable('append', data.category);
+					$("#createModal").modal("hide");
+					$("#toast").toast("show");
+					$("#toast").find(".toast-body").text(data.message.content);
+					$("#toast").addClass("bg-success");
+					setTimeout(function () {
+						$("#toast").removeClass("bg-success");
+						$("#toast").toast("hide");
+					}, 3000);
+					$("#createCategory").trigger("reset");
+				},
+				error: function (error) {
+					console.error('Ajax request failed:', error);
+				}
+			});
+			$('#createCategory').modal('hide');
+			return false
+		} else {
+			return false;
+		}
+	}
+</script>
+<script>
+	function showEditModal() {
+		var categoryID = $(this).closest('tr').find('.hidden').text();
+		$('#editModal').modal('show');
+		$.ajax({
+			url: "@Url.Action("Details", "Categories")" + "/" + categoryID,
+			type: "GET",
+			success: function (data) {
+				$("#editModal").find("#CategoryID").val(data.categoryID);
+				$("#editModal").find("#categoryName").val(data.name);
+				$("#editModal").find("#categoryDescription").val(data.description);
+				const imageGallery = document.getElementById("imageGallery");
+				imageGallery.innerHTML = "";
+				if (data.image) {
+					var imgContainer = document.createElement('div');
+					imgContainer.classList.add('thumbnail');
+					imgContainer.classList.add('p-1');
+
+					var imgElement = document.createElement('img');
+					imgElement.classList.add('product-image');
+					imgElement.src = data.image;
+					imgContainer.appendChild(imgElement);
+					imageGallery.appendChild(imgContainer);
+				}
+			},
+		});
+	};
+	function editCategory() {
+		event.preventDefault();
+		if ($("#editCategory").valid()) {
+			var formData = new FormData(document.getElementById('editCategory'))
+			$.ajax({
+				method: "POST",
+				url: '@Url.Action("Edit","Categories")',
+				data: formData,
+				processData: false,
+				contentType: false,
+				success: function (data) {
+					console.log(data)
+					$('#eventsTable').bootstrapTable('updateByUniqueId', {
+						id: data.category.categoryID,
+						row: data.category
+					});
+					$("#editModal").modal("hide");
+					$("#toast").toast("show");
+					$("#toast").find(".toast-body").text(data.message.content);
+					$("#toast").addClass("bg-success");
+					setTimeout(function () {
+						$("#toast").removeClass("bg-success");
+						$("#toast").toast("hide");
+					}, 3000);
+				},
+				error: function (error) {
+					console.error('Ajax request failed:', error);
+				}
+			});
+			$('#editCategory').modal('hide');
+			return false
+		} else {
+			return false;
+		}
+	};
+</script>
+<script>
+	// disable or delete category
+	let categoryID = null;
+	function showDeleteModal() {
+		categoryID = $(this).closest('tr').find('.hidden').text();
+		console.log(categoryID);
+		$("#deleteModal").modal("show");
+	}
+	function deleteCategory() {
+		event.preventDefault();
+		if (categoryID) {
+			$.ajax({
+				method: "GET",
+				url: '@Url.Action("Delete", "Categories")' + "/" + categoryID,
+				success: function (data) {
+					// remove row from table
+					if (data.isDelete) {
+						$("#eventsTable").bootstrapTable('remove', {
+							field: 'categoryID',
+							values: [data.category.categoryID]
+						})
+					}
+					// update row
+					else{
+						$('#eventsTable').bootstrapTable('updateByUniqueId', {
+							id: data.category.categoryID,
+							row: data.category
+						});
+					}
+					$("#deleteModal").modal("hide");
+					//show message
+					$("#toast").toast("show");
+					$("#toast").find(".toast-body").text(data.message.content);
+					$("#toast").addClass("bg-success");
+					setTimeout(function () {
+						$("#toast").removeClass("bg-success");
+						$("#toast").toast("hide");
+					}, 3000);
+					categoryID = null;
+				},
+				error: function (error) {
+					console.error('Ajax request failed:', error);
+				}
+			});
+			$('#deleteModal').modal('hide');
+		}
+	};
+</script>
+<script>
+	// enable category
+	let categoryIdEnable = null;
+	function showEnableModal() {
+		categoryIdEnable = $(this).closest('tr').find('.hidden').text();
+		console.log(categoryIdEnable);
+		$("#enableModal").modal("show");
+	}
+	function enableCategory() {
+		event.preventDefault();
+		if (categoryIdEnable) {
+			$.ajax({
+				method: "GET",
+				url: '@Url.Action("Enable", "Categories")' + "/" + categoryIdEnable,
+				success: function (data) {
+					$('#eventsTable').bootstrapTable('updateByUniqueId', {
+						id: data.category.categoryID,
+						row: data.category
+					});
+					$("#enableModal").modal("hide");
+					$("#toast").toast("show");
+					$("#toast").find(".toast-body").text(data.message.content);
+					$("#toast").addClass("bg-success");
+					setTimeout(function () {
+						$("#toast").removeClass("bg-success");
+						$("#toast").toast("hide");
+					}, 3000);
+					categoryIdEnable = null;
+				},
+				error: function (error) {
+					console.error('Ajax request failed:', error);
+				}
+			});
+			$('#enableModal').modal('hide');
+		}
+	};
+</script>

@@ -1,0 +1,115 @@
+﻿@model OnlineStore.Cms.ViewModels.Auth.LoginViewModel;
+@{
+    Layout= null;
+    var toast = new OnlineStore.Domain.Helpers.ToastModel()
+            {
+                Message = ViewBag.Message,
+                MessageType = ViewBag.MessageType
+            };
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="style.css">
+    <title>Login</title>
+    <style>
+        @@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500&display=swap');
+        body{
+            font-family: 'Poppins', sans-serif;
+            background: #ececec;
+        }
+        /*------------ Login container ------------*/
+        .box-area{
+            width: 930px;
+        }
+        /*------------ Right box ------------*/
+        .right-box{
+            padding: 40px 30px 40px 40px;
+        }
+        /*------------ Custom Placeholder ------------*/
+        ::placeholder{
+            font-size: 16px;
+        }
+        .rounded-4{
+            border-radius: 20px;
+        }
+        .rounded-5{
+            border-radius: 30px;
+        }
+        /*------------ For small screens------------*/
+        @@media only screen and (max-width: 768px){
+             .box-area{
+                margin: 0 10px;
+             }
+             .left-box{
+                height: 100px;
+                overflow: hidden;
+             }
+             .right-box{
+                padding: 20px;
+             }
+        }
+
+        .field-validation-error {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+<partial name="_Toast" model="@toast" />
+<section class="h-100 gradient-form" style="background-color: #eee;">
+    <div class="container py-5 h-100">
+        <div class="row d-flex justify-content-center align-items-center h-100">
+            <div class="col-xl-10">
+                <div class="card rounded-3 text-black">
+                    <div class="row g-0">
+                        <div class="col-lg-6 d-flex align-items-center">
+                            <div class="card-body p-md-5 mx-md-4 ">
+                                    <form asp-action="Login" asp-controller="Authentication" method="post">
+                                    <h4 class="text-center">Please login to your account</h4>
+                                    <br />
+                                    <div class="form-outline mb-4">
+                                            <label asp-for="@Model.Email" class="form-label"></label>
+                                            @Html.TextBoxFor(m => m.Email, new { placeholder = "Enter your email", @class = "form-control" })
+                                            @Html.ValidationMessageFor(m => m.Email)
+                                    </div>
+
+                                    <div class="form-outline mb-4">
+                                            <label asp-for="@Model.Password" class="form-label"></label>
+                                            @Html.TextBoxFor(m => m.Password, new { placeholder = "Enter your password", @class = "form-control", @type="password"})
+                                            @Html.ValidationMessageFor(m => m.Password)
+                                    </div>
+                                        <div class="form-group">
+                                            <div class="checkbox">
+                                                <label>
+                                                    <input asp-for="RememberLogin" /> @Html.DisplayNameFor(model => model.RememberLogin)
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div class="text-center pt-1 mb-5 pb-1">
+                                        <button class="btn btn-primary btn-block fa-lg gradient-custom-2 mb-3 w-100" type="submit">
+                                            Login
+                                        </button>
+                                        <a class="text-muted" href="#">Forgot password?</a>
+                                    </div>
+
+                                </form>
+                            </div>
+                        </div>
+                        <div class="col-lg-6 d-flex align-items-center gradient-custom-2">
+                                <image src="https://img.freepik.com/premium-vector/online-store-building_7737-788.jpg?w=740" style="max-width: 100%; height: auto;"></image>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+    <script src="/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/site.js" asp-append-version="true"></script>
+</body>
+

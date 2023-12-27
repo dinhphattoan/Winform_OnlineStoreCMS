@@ -1,0 +1,81 @@
+﻿@page
+@model OnlineStore.Cms.ViewModels.Product.ProductReqViewModel
+@{
+	bool isEdit = true;
+}
+<div class="modal fade" id="creatOrEditProduct" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title" id="exampleModalLabel">
+					@if (isEdit)
+					{
+						//<text>Edit @Model.Name</text>
+					}
+					else
+					{
+						<text>Add product</text>
+					}
+				</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div class="modal-body">
+				<!-- Form for adding a new product -->
+				<form method="post" 
+						action="@if(isEdit){
+							<text>@Url.Action("Create","Product")</text>
+						}
+						else
+						{
+							<text>@Url.Action("Edit","Product")</text>
+						}
+						" enctype="multipart/form-data"
+					  onsubmit={createProduct()}>
+					<input asp-for="ProductID" type="hidden" name="ProductID" />
+					<div class="mb-3">
+						<label for="Name" class="form-label">Name:</label>
+						<input asp-for="Name" type="text" name="Name" class="form-control" id="productName" />
+						<span id="productName-error" class="error-message text-danger" style="display: none;"></span>
+					</div>
+					<div class="mb-3">
+						<label for="Description" class="form-label">Description:</label>
+						<textarea asp-for="Description" name="Description" class="form-control" id="productDescription"
+								  rows="3"></textarea>
+						<span id="productDescription-error" class="error-message text-danger" style="display: none;"></span>
+					</div>
+					<div class="mb-3">
+						<label for="UnitPrice" class="form-label">Price:</label>
+						<input asp-for="UnitPrice" name="UnitPrice" type="number" class="form-control" id="productPrice" />
+						<span id="productPrice-error" class="error-message text-danger" style="display: none;"></span>
+					</div>
+					<div class="mb-3">
+						<label for="productCategory" class="form-label">Category:</label>
+						<select asp-for="CategoryID" asp-items="ViewBag.categories" class="form-select"></select>
+					</div>
+					<div class="mb-3">
+						<label for="Images" class="form-label">Images:</label>
+						<input name="Images" type="file" class="form-control" id="productImages" multiple />
+						<small class="form-text text-muted">Upload images.</small>
+						<span id="productImages-error" class="error-message text-danger" style="display: none;"></span>
+					</div>
+					<div class="mb-3">
+						<label for="Thumbnail" class="form-label">Thumbnail:</label>
+						<select asp-for="Thumbnail" class="form-select" id="thumbnailImage">
+							<!-- Thumbnails will be listed here dynamically using JavaScript -->
+						</select>
+					</div>
+					<button type="submit" class="btn btn-primary">
+						@if (isEdit)
+						{
+							<text>Edit Product</text>
+						}
+						else
+						{
+							<text>Add Product</text>
+						}
+					</button>
+				</form>
+			</div>
+		</div>
+	</div>
+</div>

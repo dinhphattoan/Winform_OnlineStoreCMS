@@ -1,0 +1,557 @@
+﻿@model OnlineStore.Cms.ViewModels.Product.ProductReqViewModel
+@{
+	ViewData["Title"] = "Home Page"; var datapaging = new OnlineStore.Domain.Helpers.PagingModel()
+			{
+				PageNumber = ViewBag.PageNumber,
+				CountPage = ViewBag.CountPage,
+				PageUrl = (int? p) => Url.Action("Index", new { p })
+			};
+
+	var toast = new OnlineStore.Domain.Helpers.ToastModel()
+			{
+				Message = ViewBag.Message,
+				MessageType = ViewBag.MessageType
+			};
+}
+
+<div class="container py-5">
+	<partial name="_Toast" model="@toast" />
+	<div class="toast-container position-fixed end-0 p-3">
+		<div id="toast" class="toast align-items-center text-white border-0" role="alert" aria-live="assertive" aria-atomic="true">
+			<div class="d-flex">
+				<div class="toast-body">
+				</div>
+				<button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+			</div>
+		</div>
+	</div>
+	<div class="column mb-4">
+		<button type="button" class="btn btn-primary fixed-button btn-circle btn-xl" data-bs-toggle="modal"
+				data-bs-target="#creatProduct">
+			<iconify-icon icon="typcn:plus" width="50" height="50"></iconify-icon>
+		</button>
+		<div class="custom-search">
+			<form method="get" id="search-form">
+				<i class="fa fa-search"></i>
+				<input type="text" name="search" class="form-control" placeholder="Search product by name or category">
+				<button class="btn btn-primary" type="submit">Search</button>
+			</form>
+		</div>
+	</div>
+
+	<div class="row">
+		@foreach (var product in ViewBag.products)
+		{
+			<div class="col-md-8 col-lg-6 col-xl-4">
+				<div class="card text-black" data-product-id="@product.ProductID">
+					<img src="@product.Thumbnail" class="card-img-top" alt="Apple Computer" />
+					<div class="card-body" style="height: 200px">
+						<div class="text-center">
+							<h5 class="card-title">@product.Name</h5>
+							<p class="text-muted mb-4">@product.ShortDescription</p>
+						</div>
+						<div>
+							<div class="d-flex justify-content-between">
+								<span>Category:</span><span>@product.CategoryName</span>
+							</div>
+							<div class="d-flex justify-content-between">
+								<span>Price:</span><span>@product.UnitPrice</span>
+							</div>
+
+
+							@if (@product.Quantity != 0)
+							{
+								<div class="d-flex justify-content-between">
+									<span>Quantity:</span><span>@product.Quantity</span>
+								</div>
+							}
+							else
+							{
+								<span>
+									<h3 class="text-center fw-bold text-danger">Out of stock</h3>
+								</span>
+							}
+
+						</div>
+					</div>
+					<div class="card-footer">
+						<div class="col text-center">
+							@if (@product.IsDeleted)
+							{
+								<button class="btn btn-danger w-100 enableButton" onclick="enableProduct.call(this)">Disable</button>
+							}
+							else
+							{
+								<button class="btn btn-primary editButton" data-bs-toggle="modal" data-bs-target="#editProduct">
+									Edit
+								</button>
+								<button class="btn btn-warning deleteButton" onclick="deleteProduct.call(this)">Disable</button>
+							}
+
+						</div>
+					</div>
+				</div>
+			</div>
+		}
+	</div>
+	<div class="d-flex justify-content-center">
+		<partial name="_Paging" model="@datapaging" />
+	</div>
+	<div class="modal fade" id="creatProduct" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title" id="exampleModalLabel">Add product</h5>
+					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+				</div>
+				<div class="modal-body">
+					<!-- Form for adding a new product -->
+					<!-- <form onsubmit={createProduct()}> -->
+					<form method="post" action="@Url.Action("Create","Products")" enctype="multipart/form-data"
+						  onsubmit={validateProduct.call(this)}>
+						<input asp-for="ProductID" type="hidden" name="ProductID" id="ProductID" />
+						<div class="mb-3">
+							<label for="Name" class="form-label">Name:</label>
+							<input asp-for="Name" type="text" name="Name" class="form-control" id="productName" />
+							<span id="productName-error" class="error-message text-danger"
+								  style="display: none;"></span>
+						</div>
+						<div class="mb-3">
+							<label for="Description" class="form-label">Description:</label>
+							<textarea asp-for="Description" name="Description" class="form-control"
+									  id="productDescription" rows="3"></textarea>
+							<span id="productDescription-error" class="error-message text-danger"
+								  style="display: none;"></span>
+						</div>
+						<div class="mb-3">
+							<label for="Quantity" class="form-label">Quantity:</label>
+							<input asp-for="Quantity" name="Quantity" type="number" class="form-control"
+								   id="productQuantity" />
+							<span id="productQuantity-error" class="error-message text-danger"
+								  style="display: none;"></span>
+						</div>
+						<div class="mb-3">
+							<label for="UnitPrice" class="form-label">Price:</label>
+							<input asp-for="UnitPrice" name="UnitPrice" type="number" step="0.01" class="form-control"
+								   id="productPrice" />
+							<span id="productPrice-error" class="error-message text-danger"
+								  style="display: none;"></span>
+						</div>
+						<div class="mb-3">
+							<label for="productCategory" class="form-label">Category:</label>
+							<select id="productCategory" asp-for="CategoryID" asp-items="ViewBag.categories"
+									class="form-select"></select>
+						</div>
+						<div class="mb-3">
+							<label for="Images" class="form-label">Images:</label>
+							<input name="Images" type="file" class="form-control" id="productImages" multiple />
+							<small class="form-text text-muted">Upload images.</small>
+							<span id="productImages-error" class="error-message text-danger"
+								  style="display: none;"></span>
+						</div>
+						<div class="mb-3">
+							<label for="Thumbnail" class="form-label">Thumbnail:</label>
+							<select asp-for="Thumbnail" class="form-select" id="thumbnailImage">
+								<!-- Thumbnails will be listed here dynamically using JavaScript -->
+							</select>
+						</div>
+						<button type="submit" class="btn btn-primary">Add Product</button>
+					</form>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="modal fade" id="editProduct" tabindex="-1" aria-labelledby="editProductLabel" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title" id="editProductLabel">Edit product</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div class="modal-body">
+				<!-- Form for adding a new product -->
+				<form method="post" id="myForm" action="@Url.Action("Update","Products")" enctype="multipart/form-data"
+					  onsubmit={validateProduct.call(this)}>
+					<input asp-for="ProductID" type="hidden" name="ProductID" id="ProductID" />
+					<input asp-for="deleteImages" type="hidden" name="deleteImages" id="deleteImages" />
+					<div class="mb-3">
+						<label for="Name" class="form-label">Name:</label>
+						<input asp-for="Name" type="text" name="Name" class="form-control" id="productName" />
+						<span id="productName-error" class="error-message text-danger" style="display: none;"></span>
+					</div>
+					<div class="mb-3">
+						<label for="Description" class="form-label">Description:</label>
+						<textarea asp-for="Description" name="Description" class="form-control" id="productDescription"
+								  rows="3"></textarea>
+						<span id="productDescription-error" class="error-message text-danger"
+							  style="display: none;"></span>
+					</div>
+					<div class="mb-3">
+						<label for="UnitPrice" class="form-label">Price:</label>
+						<input asp-for="UnitPrice" name="UnitPrice" type="number" step="0.01" class="form-control"
+							   id="productPrice" />
+						<span id="productPrice-error" class="error-message text-danger" style="display: none;"></span>
+					</div>
+					<div class="mb-3">
+						<label for="productCategory" class="form-label">Category:</label>
+						<select id="productCategory" asp-for="CategoryID" asp-items="ViewBag.categories"
+								class="form-select"></select>
+					</div>
+					<div class="mb-3">
+						<label for="Images" class="form-label">Images:</label>
+						<input name="Images" type="file" class="form-control" id="productImages-edit" multiple />
+						<small class="form-text text-muted">Upload images.</small>
+						<span id="productImages-error" class="error-message text-danger" style="display: none;"></span>
+					</div>
+					<div class="mb-3">
+						<label for="Thumbnail" class="form-label">Thumbnail:</label>
+						<select asp-for="Thumbnail" class="form-select" id="thumbnailImage-edit">
+							<!-- Thumbnails will be listed here dynamically using JavaScript -->
+						</select>
+					</div>
+					<div id="imageGallery" class="d-flex align-items-center">
+					</div>
+					<button type="submit" class="btn btn-primary">Edit Product</button>
+				</form>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="modal" tabindex="-1" id="deleteProduct">
+	<div class="modal-dialog modal-dialog-centered">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title">Confirm delete</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div class="modal-body">
+				<p>Do you want to delete this product?</p>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+				<button type="button" class="btn btn-primary" id="confirmDeleteButton">Yes, delete</button>
+			</div>
+		</div>
+	</div>
+</div>
+<div class="modal" tabindex="-1" id="enableProduct">
+	<div class="modal-dialog modal-dialog-centered">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title">Confirm enable</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div class="modal-body">
+				<p>Do you want to enable this product?</p>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+				<button type="button" class="btn btn-primary" id="confirmEnableButton">Yes, enable</button>
+			</div>
+		</div>
+	</div>
+</div>
+<script>
+	let productIdToDelete = null;
+	function deleteProduct() {
+		productIdToDelete = $(this).closest(".card").data("product-id");
+		console.log(productIdToDelete);
+		$("#deleteProduct").modal("show");
+	}
+	document.addEventListener("DOMContentLoaded", function () {
+		var deleteButtons = document.querySelectorAll(".deleteButton");
+		document.getElementById("confirmDeleteButton").addEventListener("click", function () {
+			event.preventDefault()
+			if (productIdToDelete) {
+				$.ajax({
+					url: "@Url.Action("Delete", "Products")" + "?id=" + productIdToDelete,
+					type: "GET",
+					success: function (data) {
+						$("#deleteProduct").modal("hide");
+						$("#toast").toast("show");
+						$("#toast").find(".toast-body").text(data.message);
+						$("#toast").addClass("bg-success");
+						setTimeout(function () {
+							$("#toast").removeClass("bg-success");
+						}, 3000);
+
+						var card = $(`.card[data-product-id="${productIdToDelete}"]`);
+						card.find(".card-footer").remove();
+						card.append(`
+							<div class="card-footer">
+								<div class="col text-center">
+										<button class="btn btn-danger w-100 enableButton" onclick="enableProduct.call(this)">Disable</button>
+								</div>
+							</div>`);
+						productIdToDelete = null;
+					},
+					error: function () {
+						$("#toast").toast("show");
+						$("#toast").find(".toast-body").text("An error occurred. Please try again");
+						$("#toast").addClass("bg-danger");
+						setTimeout(function () {
+							$("#toast").removeClass("bg-danger");
+						}, 3000);
+					}
+				});
+			};
+		});
+	});
+</script>
+<script>
+	let productIdToEnable = null;
+	function enableProduct() {
+		productIdToEnable = $(this).closest(".card").data("product-id");
+		console.log(productIdToEnable);
+		$("#enableProduct").modal("show");
+	}
+	document.addEventListener("DOMContentLoaded", function () {
+		var enableButtons = document.querySelectorAll(".enableButton");
+		document.getElementById("confirmEnableButton").addEventListener("click", function () {
+			event.preventDefault()
+			if (productIdToEnable) {
+				$.ajax({
+					url: "@Url.Action("Enable", "Products")" + "?id=" + productIdToEnable,
+					type: "GET",
+					success: function (data) {
+						$("#enableProduct").modal("hide");
+						$("#toast").toast("show");
+						$("#toast").find(".toast-body").text(data.message);
+						$("#toast").addClass("bg-success");
+						setTimeout(function () {
+							$("#toast").removeClass("bg-success");
+						}, 3000);
+
+						var card = $(`.card[data-product-id="${productIdToEnable}"]`);
+						card.find(".card-footer").remove();
+						card.append(`
+						<div class="card-footer">
+							<div class="col text-center">
+								<button class="btn btn-primary editButton" data-bs-toggle="modal" data-bs-target="#editProduct">
+										Edit
+								</button>
+									<button class="btn btn-warning deleteButton" onclick="deleteProduct.call(this)">Disable</button>
+							</div>
+						</div>`);
+						productIdToEnable = null;
+					},
+					error: function () {
+						$("#toast").toast("show");
+						$("#toast").find(".toast-body").text("An error occurred. Please try again");
+						$("#toast").addClass("bg-danger");
+						setTimeout(function () {
+							$("#toast").removeClass("bg-danger");
+						}, 3000);
+					}
+				});
+			};
+		});
+	});
+</script>
+<script>
+	document.addEventListener("DOMContentLoaded", function () {
+		let imageDeleteList = [];
+		var editButtons = document.querySelectorAll(".editButton");
+
+		editButtons.forEach(function (button) {
+			button.addEventListener("click", function () {
+				var productId = $(this).closest(".card").data("product-id");
+				$.ajax({
+					url: "/Products/GetProductById?id=" + productId,
+					type: "GET",
+					success: function (data) {
+						$("#editProduct").find("#ProductID").val(data.productID);
+						$("#editProduct").find("#productName").val(data.name);
+						$("#editProduct").find("#productPrice").val(parseFloat(data.unitPrice.replace("$", "")));
+						$("#editProduct").find("#productDescription").val(data.description);
+						$("#editProduct").find("#productCategory").val(data.categoryID);
+						$("#editProduct").find("#imageGallery").empty();
+
+						data.productImages.forEach(function (image) {
+							var imgContainer = document.createElement('div');
+							imgContainer.classList.add('thumbnail');
+							imgContainer.classList.add('p-1');
+
+							var imgElement = document.createElement('img');
+							imgElement.classList.add('product-image');
+							imgElement.src = image.path;
+							imgContainer.appendChild(imgElement);
+
+							var deleteButton = document.createElement('iconify-icon');
+							deleteButton.classList.add('delete-btn');
+							deleteButton.setAttribute('icon', 'ph:x');
+							deleteButton.setAttribute('style', 'color: white;');
+							deleteButton.onclick = function (e) {
+								e.preventDefault();
+								// Xử lý sự kiện xóa, thêm ID của ảnh vào danh sách để xóa
+								var imageIdToDelete = image.productImageID;
+								addImageToDeleteList(imageIdToDelete);
+
+								// Xóa ảnh khỏi giao diện
+								imgContainer.remove();
+							};
+
+							imgContainer.appendChild(deleteButton);
+							const imageSelect = document.getElementById("productImages-edit");
+							imageSelect.value = ""; // Reset giá trị của input file
+							$("#editProduct").find("#imageGallery").append(imgContainer);
+
+							const thumbnailSelectEdit = document.getElementById("thumbnailImage-edit");
+							const imageGallery = document.getElementById("imageGallery");
+							thumbnailSelectEdit.innerHTML = "";
+							for (let i = 0; i < imageGallery.childElementCount; i++) {
+								const option = document.createElement("option");
+								const fileName = "Image " + (i + 1);
+								option.text = fileName;
+								option.value = i;
+								thumbnailSelectEdit.add(option);
+							}
+							//end
+						});
+					},
+					error: function () {
+						alert("Lỗi khi lấy thông tin sản phẩm");
+					}
+				});
+			});
+		});
+
+		function addImageToDeleteList(imageId) {
+			imageDeleteList.push(imageId);
+			document.getElementById("deleteImages").value = imageDeleteList
+			const selectElement = document.getElementById("thumbnailImage-edit");
+			const length = selectElement.options.length;
+
+			if (length > 0) {
+				selectElement.remove(length - 1);
+			}
+			changeOptionDeleteImage();
+		}
+		// for edit
+
+		const imageSelectEdit = document.getElementById("productImages-edit");
+
+		imageSelectEdit.addEventListener("change", function () {
+			changeOptionDeleteImage();
+		});
+
+		function changeOptionDeleteImage() {
+			const imageSelectEdit = document.getElementById("productImages-edit");
+			const thumbnailSelectEdit = document.getElementById("thumbnailImage-edit");
+			var count = thumbnailSelectEdit.length;
+			for (let i = count; i < imageSelectEdit.files.length + count; i++) {
+				const option = document.createElement("option");
+				const fileName = imageSelectEdit.files[i - count].name;
+				option.text = fileName;
+				option.value = i;
+				thumbnailSelectEdit.add(option);
+			}
+		}
+		// for create
+		const imageSelect = document.getElementById("productImages");
+		const thumbnailSelect = document.getElementById("thumbnailImage");
+
+		imageSelect.addEventListener("change", function () {
+			thumbnailSelect.innerHTML = "";
+
+			for (let i = 0; i < imageSelect.files.length; i++) {
+				const option = document.createElement("option");
+				const fileName = imageSelect.files[i].name;
+				option.text = fileName;
+				option.value = i;
+				thumbnailSelect.add(option);
+			}
+		});
+
+
+		$("#search-form").submit(function () {
+			var $input = $(this).find("input[name=search]");
+			var cleanValue = $input.val().replace("http://", "").replace("https://", "");
+			$input.val(cleanValue);
+		});
+	});
+</script>
+<script>
+	// function createProduct() {
+	// 	event.preventDefault()
+	// 	validateProduct()
+	// 	var formData = new FormData();
+	// 	var files = $("#productImages").get(0).files;
+	// 	for (var i = 0; i < files.length; i++) {
+	// 		formData.append("Images", files[i]);
+	// 	}
+	// 	formData.append("Name", $("#productName").val());
+	// 	formData.append("Description", $("#productDescription").val());
+	// 	formData.append("Quantity", $("#productQuantity").val());
+	// 	formData.append("UnitPrice", $("#productPrice").val());
+	// 	formData.append("CategoryID", $("#productCategory").val());
+	// 	formData.append("Thumbnail", $("#thumbnailImage").val());
+
+	// 	$.ajax({
+	// 		url: "/Products/Create",
+	// 		type: "POST",
+	// 		data: formData,
+	// 		contentType: false,
+	// 		processData: false,
+	// 		success: function (data) {
+	// 			$("#creatProduct").modal("hide");
+	// 			$("#toast").toast("show");
+	// 			$("#toast").find(".toast-body").text(data.message.content);
+	// 			$("#toast").addClass("bg-success");
+	// 			setTimeout(function () {
+	// 				$("#toast").removeClass("bg-success");
+	// 			}, 3000);
+	// 		},
+	// 		error: function () {
+	// 			$("#creatProduct").modal("hide");
+	// 			$("#toast").toast("show");
+	// 			$("#toast").find(".toast-body").text("An error occurred. Please try again");
+	// 			$("#toast").addClass("bg-danger");
+	// 			setTimeout(function () {
+	// 				$("#toast").removeClass("bg-danger");
+	// 			}, 3000);
+	// 		}
+	// 	});
+	// }
+	function validateProduct() {
+		// Ẩn tất cả các thông báo lỗi
+		var priceValue = $(this).find("#productPrice").val();
+		var imagesValue = $(this).find("#productImages").val();
+		var descriptionValue = $(this).find("#productDescription").val();
+		var nameValue = $(this).find("#productName").val();
+		$(this).find(".error-message").hide();
+
+		// Kiểm tra điều kiện cho trường Name
+		console.log(nameValue);
+		if (nameValue.trim() === "") {
+			event.preventDefault(); // Ngăn chặn việc submit form
+			showErrorMessage.call(this, "productName", "Please enter a name.");
+
+			return false;
+		}
+
+		// Kiểm tra điều kiện cho trường Description
+		if (descriptionValue.trim() === "") {
+			event.preventDefault(); // Ngăn chặn việc submit form
+			showErrorMessage.call(this, "productDescription", "Please enter a description.");
+			
+			return false;
+		}
+
+		// Kiểm tra điều kiện cho trường UnitPrice
+		if (isNaN(priceValue) || priceValue <= 0) {
+			event.preventDefault(); // Ngăn chặn việc submit form
+			showErrorMessage.call(this, "productPrice", "Please enter a valid price.");
+			
+			return false;
+		}
+		return true;
+	};
+	function showErrorMessage(fieldName, message) {
+		$(this).find("#" + fieldName + "-error").text(message);
+		$(this).find("#" + fieldName + "-error").show();
+	}
+</script>

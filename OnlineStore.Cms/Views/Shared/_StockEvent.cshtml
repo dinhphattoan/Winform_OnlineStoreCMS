@@ -1,0 +1,42 @@
+﻿@model dynamic;
+@{
+	var id = Model.Id;
+	var title = Model.Title;
+	var formID = Model.FormID;
+	var onsubmit = Model.OnSubmit;
+	var btnContent = Model.BtnContent;
+}
+<div class="modal fade" id="@id" tabindex="-1" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title">@title</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div class="modal-body">
+				<form method="post" id="@formID" onsubmit={@onsubmit}>
+					<input type="hidden" name="StockID" id="StockID" class="form-control" />
+					<div class="mb-3">
+						<input type="text" name="Name" class="form-control" id="Name" disabled />
+					</div>
+					<div class="mb-3">
+						<label for="Reason" class="form-label">Reason</label>
+						<textarea name="Reason" class="form-control" rows="3"></textarea>
+					</div>
+					<div class="mb-3">
+						<div class="input-group">
+							<span class="input-group-prepend">
+								<button type="button" class="btn btn-outline-secondary" onclick="decreaseQuantity()">-</button>
+							</span>
+							<input type="text" class="form-control text-center" name="Quantity" value="0" id="quantityInput" />
+							<span class="input-group-append">
+								<button type="button" class="btn btn-outline-secondary" onclick="increaseQuantity()">+</button>
+							</span>
+						</div>
+					</div>
+					<button type="submit" class="btn btn-primary">@btnContent</button>
+				</form>
+			</div>
+		</div>
+	</div>
+</div>

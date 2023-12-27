@@ -1,0 +1,31 @@
+﻿@using OnlineStore.Domain.Enums;
+@model OnlineStore.Domain.Helpers.ToastModel;
+@{
+    string? message = Model.Message;
+    ToastType? type = Model.MessageType;
+}
+
+@if (message != null){
+    <div class="toast-container position-fixed end-0 p-3" style="z-index:10000">
+        <div id="liveToast" class="toast align-items-center text-white border-0
+             @if(type == ToastType.Error) {
+         <text>bg-danger</text>
+         }
+            else if (type == ToastType.Success) {
+         <text>bg-success</text>
+         }
+            else if (type == ToastType.Warning) {
+         <text>bg-warning</text>
+         }
+            else {
+         <text>bg-info</text>
+         }" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body">
+                    @message
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+}
